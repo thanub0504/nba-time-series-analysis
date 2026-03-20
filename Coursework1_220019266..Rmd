@@ -1,0 +1,86 @@
+---
+title: "MTH6139 Time Series" 
+subtitle: "Coursework 1 -- Forceasting Player Performance Using Prophet(NBA:Shai Gilgeous-Alexander) " 
+author: "Thanushan Balachanthiran" 
+date: "Spring term 2025" 
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: spacelab 
+    highlight: tango
+---
+ 
+```{r, echo=FALSE}
+# This code will display the QMUL logo at the top right of the page
+# Do not change this code
+htmltools::img(src = knitr::image_uri("images/QMlogo.png"),
+               alt = 'logo',
+               style = 'position:absolute; top:0; right:0; padding:10px; width:20%;')
+```
+
+# Section 1 - Introduction
+
+Time series forecasting is used in many different fields of work such as economics, specifically could be the stock market and changes in values, but it can also be used with sports analytics, and in this case i wanted to look at the use of time series forecasting to last seasons' Most Valuable Player, Shai Gilgeous-Alexander, and how his points per game changed over the years from the start of his career to his MVP season.
+
+# This project is analysing the the scoring performance of Shai from this whole time period, with the objective to model the time series of points per game and to generate forecasts using the Prophet forecasting system developed by Meta. I have created a data set compiling all of his seasons points per game today, I am going to model the scoring trends and attempt to predict future games.
+
+# Section 2 
+
+library(prophet)
+library(readr)
+library(ggplot2)
+
+ShaiCareerData <- read.csv("~/Documents/time series/shaicareer.csv")
+
+SgaPointsData <- data.frame(
+  ds = as.Date(ShaiCareerData$Date, format = "%m/%d/%Y"), 
+  y = ShaiCareerData$PTS
+)
+
+head(SgaPointsData)
+
+# We need two different columns from the data sets when it comes to using prophet, one of them is the date, which is shown by 'ds' and the other column is the variable which is dependent on the model we are trying to produce. In my case, it is Shai's Points per game. And when naming the variables, I had to format the dates to make it work for the plot.
+
+# Section 3 - Analysis
+
+ggplot(SgaPointsData, aes(x = ds, y = y)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "SGA's Points per Game Over Time", 
+    x = "Date",
+    y = "Points"
+  )
+
+# This plot I have created shows us how his scoring performances are like throughout his career, and you can see how it changes. At the start of the career his was scoring quite low amount of points clearly just finding his footing in the league, as you go on down the years you can see he starts scoring more however it is still inconsistent as he scores high one game and scores low the next, by leading up to and mainly including his MVP season, his points per games started being consistently high, which is a major reason of why he was awarded the MVP award.
+
+# Section 4 - The Prophet Model
+
+shai_model <- prophet(SgaPointsData)
+
+# This model is made from using the Prophet Library to forecast future results. Prophet is a time series forecasting tool by Meta, and this is good for my dataset aas there is a strong trend in increase of his points.
+
+future_games <- make_future_dataframe(
+    shai_model,
+    periods = 82
+)
+
+forecast_results <- predict(
+   shai_model,
+   future_games
+)
+
+head(forecast_results)
+
+plot(shai_model, forecast_results)
+
+# This forecast plot not only shows the data that I added but also the predicted values. The blue line represents the predicted in scoring performance and the shaded region indicates the uncertainty interval.
+
+prophet_plot_components(shai_model, forecast_results)
+
+# The component plot splits the model into parts like long term trends as well as seasonal changes such as when a player comes back from injury or if a player joins a new club or also near the end of a season where games don't matter as much.
+
+# Conclusion 
+
+# To summarise this project analysed the scoring performance of the 2024-25 MVP Shai, throughout his career using time series to forecast potential future scoring performances. From all the results and graphs produced, you can see a clear positive trend in these seasons. And Prophet was then used to predict future values using the patterns. This trend in increasing points per game allow us to see that he will keep going at this rate, with a more constant level of high scoring values. This was an example of how time series modelling can be used in sports analytics to predict future performances.
